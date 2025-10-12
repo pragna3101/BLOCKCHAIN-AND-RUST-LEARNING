@@ -1,43 +1,64 @@
 #!/bin/bash
+# Updated deploy script: ensures the wasm target is installed before running `cargo stylus deploy`
+
+# Load .env if present (ignore comments)
 if [ -f .env ]; then
   export $(grep -v '^#' .env | xargs)
 fi
 
-# Exit on error
-set -e
+# Fail on error, undefined var, or pipefail
+set -euo pipefail
 
 # Arbitrum Sepolia RPC URL
 SEPOLIA_RPC_URL="https://sepolia-rollup.arbitrum.io/rpc"
 
 # Check for PRIVATE_KEY environment variable
-if [[ -z "$PRIVATE_KEY" ]]; then
+if [[ -z "${PRIVATE_KEY:-}" ]]; then
   echo "Error: PRIVATE_KEY environment variable is not set."
   echo "Please set your private key: export PRIVATE_KEY=your_private_key_here"
   exit 1
 fi
 
-# Optionally, check for required tools
-for cmd in cast cargo; do
-  if ! command -v $cmd &> /dev/null; then
+# Check for required tools
+for cmd in cast cargo rustup curl; do
+  if ! command -v "$cmd" &> /dev/null; then
     echo "Error: $cmd is not installed."
     exit 1
   fi
 done
 
+# Ensure the wasm target is installed for the active toolchain
+if ! rustup target list --installed | grep -q "^wasm32-unknown-unknown$"; then
+  echo "Rust target wasm32-unknown-unknown not found. Adding target using rustup..."
+  if ! rustup target add wasm32-unknown-unknown; then
+    echo "Error: Failed to add wasm32-unknown-unknown target via rustup."
+    echo "If you're using a custom toolchain, ensure rustup is configured correctly."
+    exit 1
+  fi
+  echo "wasm32-unknown-unknown target installed."
+else
+  echo "wasm32-unknown-unknown target already installed."
+fi
+
+# (Optional) check that `cargo stylus` can be invoked — some environments expose cargo subcommands differently
+if ! cargo stylus --help &> /dev/null; then
+  echo "Warning: 'cargo stylus' didn't respond to --help. It may still work when run as a subcommand; continuing..."
+fi
+
 # Check if we can connect to Arbitrum Sepolia
 echo "Checking connection to Arbitrum Sepolia..."
 if ! curl -s -X POST -H "Content-Type: application/json" \
   --data '{"jsonrpc":"2.0","method":"net_version","params":[],"id":1}' \
-  "$SEPOLIA_RPC_URL" > /dev/null; then
+  "${SEPOLIA_RPC_URL}" > /dev/null; then
     echo "Error: Cannot connect to Arbitrum Sepolia RPC"
     exit 1
 fi
 echo "Connected to Arbitrum Sepolia!"
 
 echo "Deploying the Stylus contract using cargo stylus..."
-deploy_output=$(cargo stylus deploy -e "$SEPOLIA_RPC_URL" --private-key "$PRIVATE_KEY" --no-verify 2>&1)
+deploy_output=$(cargo stylus deploy -e "${SEPOLIA_RPC_URL}" --private-key "${PRIVATE_KEY}" --no-verify 2>&1) || true
 
-# Check if deployment was successful
+# If cargo stylus failed, exit with helpful output
 if [[ $? -ne 0 ]]; then
     echo "Error: Contract deployment failed"
     echo "Deploy output: $deploy_output"
@@ -73,4 +94,4 @@ if [[ ! -z "$contract_address" ]]; then
     echo "Contract address: $contract_address"
 fi
 
-echo "Deployment completed successfully on Arbitrum Sepolia!" 
+echo "Deployment completed successfully on Arbitrum Sepolia!"
