@@ -1,0 +1,70 @@
+{
+  "name": "Speedrun Stylus Dev Environment",
+  "image": "meetpaladiya44/speedrun-codespaces:0.1",
+  "containerUser": "vscode",
+  "remoteUser": "vscode",
+  "runArgs": ["--platform=linux/amd64"],
+  "hostRequirements": {
+    "cpus": 4,
+    "memory": "16gb",
+    "storage": "32gb"
+  },
+  "features": {
+    "ghcr.io/devcontainers/features/common-utils:2": {
+      "installZsh": true,
+      "installOhMyZsh": true,
+      "username": "vscode"
+    }
+  },
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "rust-lang.rust-analyzer",
+        "tamasfe.even-better-toml",
+        "serayuzgur.crates",
+        "vadimcn.vscode-lldb",
+        "JuanBlanco.solidity",
+        "ms-vscode.hexeditor",
+        "dbaeumer.vscode-eslint",
+        "esbenp.prettier-vscode"
+      ]
+    }
+  },
+  "settings": {
+    "rust-analyzer.checkOnSave.command": "clippy",
+    "rust-analyzer.cargo.allFeatures": true,
+    "editor.formatOnSave": true,
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
+    "[rust]": {
+      "editor.defaultFormatter": "rust-lang.rust-analyzer"
+    },
+    "[solidity]": {
+      "editor.defaultFormatter": "JuanBlanco.solidity"
+    },
+    "terminal.integrated.defaultProfile.linux": "bash"
+  },
+  "postCreateCommand": "bash -lc \"echo '🔍 Verifying pre-installed tools...' && node --version && yarn --version && rustc --version && cargo --version && (cargo-stylus --version || true) && (forge --version || true) && echo '✅ Tools verified'; if [ -f yarn.lock ]; then echo '📦 Installing yarn dependencies...' && yarn install --frozen-lockfile; else echo 'ℹ️ yarn.lock not found — skipping install'; fi\"",
+  "postStartCommand": "echo '✅ Codespace started — ready.'",
+  "postAttachCommand": "git config --global --add safe.directory /workspace || true",
+  "forwardPorts": [3000, 8545, 5173],
+  "portsAttributes": {
+    "3000": {
+      "label": "Application",
+      "onAutoForward": "notify"
+    },
+    "8545": {
+      "label": "Anvil/Local Blockchain",
+      "onAutoForward": "notify"
+    },
+    "5173": {
+      "label": "Vite Dev Server",
+      "onAutoForward": "silent"
+    }
+  },
+  "containerEnv": {
+    "RUST_BACKTRACE": "1",
+    "CARGO_TERM_COLOR": "always",
+    "CARGO_INCREMENTAL": "1"
+  },
+  "workspaceFolder": "/workspace"
+}
