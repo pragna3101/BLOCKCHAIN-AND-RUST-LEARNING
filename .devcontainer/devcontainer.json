@@ -16,9 +16,11 @@
     "ghcr.io/devcontainers/features/docker-in-docker:2": {
       "version": "latest",
       "moby": true,
-      "dockerDashComposeVersion": "v2"
+      "dockerDashComposeVersion": "v2",
+      "enableNonRootDocker": "true"
     }
   },
+  "runArgs": ["--privileged", "--init"],
   "customizations": {
     "vscode": {
       "extensions": [
@@ -44,8 +46,8 @@
       }
     }
   },
-  "postCreateCommand": "bash -lc \"echo '🔍 Verifying pre-installed tools...' && node --version && yarn --version && rustc --version && cargo --version && (cargo-stylus --version || true) && (forge --version || true) && docker --version && echo '✅ Tools verified'; if [ -f yarn.lock ]; then echo '📦 Installing yarn dependencies...' && yarn install --frozen-lockfile; else echo 'ℹ️ yarn.lock not found — skipping install'; fi\"",
-  "postStartCommand": "echo '✅ Codespace started — ready. Docker is available.'",
+  "postCreateCommand": "bash -lc 'echo \"🔍 Verifying pre-installed tools...\" && node --version && yarn --version && rustc --version && cargo --version && (cargo-stylus --version || true) && (forge --version || true) && echo \"✅ Tools verified\"; echo \"🔧 Waiting for Docker to be ready...\"; timeout=60; elapsed=0; while ! docker info >/dev/null 2>&1; do if [ $elapsed -ge $timeout ]; then echo \"❌ Docker failed to start within ${timeout}s\"; exit 1; fi; sleep 2; elapsed=$((elapsed + 2)); done; echo \"✅ Docker is ready\"; docker --version; if [ -f yarn.lock ]; then echo \"📦 Installing yarn dependencies...\" && yarn install --frozen-lockfile; else echo \"ℹ️ yarn.lock not found — skipping install\"; fi'",
+  "postStartCommand": "bash -lc 'echo \"⏳ Waiting for Docker daemon...\"; timeout=60; elapsed=0; while ! docker ps >/dev/null 2>&1; do if [ $elapsed -ge $timeout ]; then echo \"❌ Docker daemon failed to start within ${timeout}s\"; exit 1; fi; sleep 2; elapsed=$((elapsed + 2)); done; echo \"✅ Codespace started — Docker is ready.\"'",
   "postAttachCommand": "bash -lc \"git config --global --add safe.directory '${containerWorkspaceFolder:-/workspace}' || true\"",
   "forwardPorts": [3000, 8545, 5173],
   "portsAttributes": {
@@ -68,8 +70,5 @@
     "CARGO_INCREMENTAL": "1"
   },
   "workspaceMount": "source=${localWorkspaceFolder},target=/workspace,type=bind,consistency=cached",
-  "workspaceFolder": "/workspace",
-  "mounts": [
-    "source=/var/run/docker.sock,target=/var/run/docker.sock,type=bind"
-  ]
+  "workspaceFolder": "/workspace"
 }
