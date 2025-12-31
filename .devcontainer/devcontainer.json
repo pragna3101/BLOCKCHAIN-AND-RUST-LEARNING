@@ -12,6 +12,11 @@
       "installZsh": true,
       "installOhMyZsh": true,
       "username": "vscode"
+    },
+    "ghcr.io/devcontainers/features/docker-in-docker:2": {
+      "version": "latest",
+      "moby": true,
+      "dockerDashComposeVersion": "v2"
     }
   },
   "customizations": {
@@ -24,25 +29,23 @@
         "JuanBlanco.solidity",
         "ms-vscode.hexeditor",
         "dbaeumer.vscode-eslint",
-        "esbenp.prettier-vscode"
-      ]
+        "esbenp.prettier-vscode",
+        "ms-azuretools.vscode-docker"
+      ],
+      "settings": {
+        "rust-analyzer.checkOnSave.command": "clippy",
+        "rust-analyzer.cargo.allFeatures": true,
+        "editor.formatOnSave": true,
+        "editor.defaultFormatter": "esbenp.prettier-vscode",
+        "[rust]": {
+          "editor.defaultFormatter": "rust-lang.rust-analyzer"
+        },
+        "terminal.integrated.defaultProfile.linux": "bash"
+      }
     }
   },
-  "settings": {
-    "rust-analyzer.checkOnSave.command": "clippy",
-    "rust-analyzer.cargo.allFeatures": true,
-    "editor.formatOnSave": true,
-    "editor.defaultFormatter": "esbenp.prettier-vscode",
-    "[rust]": {
-      "editor.defaultFormatter": "rust-lang.rust-analyzer"
-    },
-    "[solidity]": {
-      "editor.defaultFormatter": "JuanBlanco.solidity"
-    },
-    "terminal.integrated.defaultProfile.linux": "bash"
-  },
-  "postCreateCommand": "bash -lc \"echo '🔍 Verifying pre-installed tools...' && node --version && yarn --version && rustc --version && cargo --version && (cargo-stylus --version || true) && (forge --version || true) && echo '✅ Tools verified'; if [ -f yarn.lock ]; then echo '📦 Installing yarn dependencies...' && yarn install --frozen-lockfile; else echo 'ℹ️ yarn.lock not found — skipping install'; fi\"",
-  "postStartCommand": "echo '✅ Codespace started — ready.'",
+  "postCreateCommand": "bash -lc \"echo '🔍 Verifying pre-installed tools...' && node --version && yarn --version && rustc --version && cargo --version && (cargo-stylus --version || true) && (forge --version || true) && docker --version && echo '✅ Tools verified'; if [ -f yarn.lock ]; then echo '📦 Installing yarn dependencies...' && yarn install --frozen-lockfile; else echo 'ℹ️ yarn.lock not found — skipping install'; fi\"",
+  "postStartCommand": "echo '✅ Codespace started — ready. Docker is available.'",
   "postAttachCommand": "bash -lc \"git config --global --add safe.directory '${containerWorkspaceFolder:-/workspace}' || true\"",
   "forwardPorts": [3000, 8545, 5173],
   "portsAttributes": {
@@ -64,14 +67,9 @@
     "CARGO_TERM_COLOR": "always",
     "CARGO_INCREMENTAL": "1"
   },
-
-  // IMPORTANT: explicitly mount the repo into /workspace and use the container variable
   "workspaceMount": "source=${localWorkspaceFolder},target=/workspace,type=bind,consistency=cached",
   "workspaceFolder": "/workspace",
-
-  // Optional: if Codespaces mounts in /workspaces/<repo>, the variable below will open that automatically
-  // "workspaceFolder": "${containerWorkspaceFolder}",
-
-  // keep the user you had
-  "remoteUser": "vscode"
+  "mounts": [
+    "source=/var/run/docker.sock,target=/var/run/docker.sock,type=bind"
+  ]
 }
