@@ -1,0 +1,47 @@
+[
+    {
+        "name": "Unchecked Arithmetics",
+        "description": "Arithmetic operations without overflow checks can lead to unexpected behavior, incorrect calculations, or security vulnerabilities when values exceed their maximum limits.",
+        "severity": "Low",
+        "certainty": "Medium",
+        "locations": [
+            "/workspace/packages/erc20/src/erc20.rs:85:24-27",
+            "/workspace/packages/erc20/src/erc20.rs:69:12-21",
+            "/workspace/packages/erc20/src/erc20.rs:98:12-16",
+            "/workspace/packages/erc20/src/erc20.rs:85:24-27",
+            "/workspace/packages/erc20/src/erc20.rs:85:24-27",
+            "/workspace/packages/erc20/src/erc20.rs:85:24-27",
+            "/workspace/packages/erc20/src/erc20.rs:85:24-27"
+        ]
+    },
+    {
+        "name": "PDA Sharing",
+        "description": "Reuse of a PDA across multiple authority domains can lead to unauthorized data or funds access.",
+        "severity": "Low",
+        "certainty": "Low",
+        "locations": [
+            "/workspace/packages/erc20/src/erc20.rs:68:34-42"
+        ]
+    },
+    {
+        "name": "Unauthorized State Modification",
+        "description": "Functions that modify critical state variables without proper access control checks allow any user to manipulate contract state, leading to unauthorized changes and potential exploitation.",
+        "severity": "High",
+        "certainty": "Medium",
+        "locations": [
+            "/workspace/packages/erc20/src/erc20.rs:69:12-21",
+            "/workspace/packages/erc20/src/erc20.rs:98:12-16",
+            "/workspace/packages/erc20/src/erc20.rs:118:12-16"
+        ]
+    },
+    {
+        "name": "Unrestricted Token Minting",
+        "description": "Public mint functions without access control allow anyone to mint unlimited tokens, completely breaking the token economics and security model.",
+        "severity": "Medium",
+        "certainty": "Medium",
+        "locations": [
+            "/workspace/packages/erc20/src/lib.rs:45:12-19",
+            "/workspace/packages/erc20/src/erc20.rs:98:12-16"
+        ]
+    }
+]
